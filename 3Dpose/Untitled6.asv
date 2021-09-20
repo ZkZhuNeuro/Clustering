@@ -1,0 +1,102 @@
+%%
+close all; clear all; clc
+
+%% Load data
+
+Subj = {'Frank'}; % 'Lue', 'Frank', 'Warren'
+RecordingArea = 'V3A';
+% isSave = true;
+
+names = fileSeeker(Subj, RecordingArea);
+
+[tetrodes] = fileFilter_tetrodeWithMultipleUnits(names);
+
+dir_x = [];
+sdi_x = [];
+mag_x = [];
+dir_vm_x = [];
+bw_x = [];
+dir_vm = [];
+
+dir_y = [];
+sdi_y = [];
+mag_y = [];
+dir_vm_y = [];
+bw_y = [];
+dir_sumVec = [];
+
+for i = 1:size(tetrodes, 2)
+    filenames = tetrodes{i};
+    [units, unitAmt] = unitStats_allTT(filenames);
+    for j = 1: unitAmt
+        dir_vm = [dir_vm, units(j).vmMiu];
+        dir_sumVec = [dir_sumVec, units(j).sumAngle * 180 / pi];
+    end
+    [dir_i_x, sdi_i_x, mag_i_x, dir_vm_i_x
+    [dir_i_x, sdi_i_x, mag_i_x, dir_vm_i_x, dir_i_y, bw_i_x,  ...
+        sdi_i_y, mag_i_y,dir_vm_i_y, bw_i_y] = compareUnits_refCell(units, unitAmt);
+    dir_x = [dir_x, dir_i_x];
+    dir_y = [dir_y, dir_i_y];
+    sdi_x = [sdi_x, sdi_i_x];
+    sdi_y = [sdi_y, sdi_i_y];
+    mag_x = [mag_x, mag_i_x];
+    mag_y = [mag_y, mag_i_y];
+    dir_vm_x  = [dir_vm_x, dir_vm_i_x];
+    dir_vm_y  = [dir_vm_y, dir_vm_i_y];
+    bw_x = [bw_x, bw_i_x];
+    bw_y = [bw_y, bw_i_y];
+end
+% subplot(1, 3, 1);
+% edges_rose = linspace(0, 2 * pi, 13);
+% polarhistogram(dir,'BinEdges', edges_rose + 15 / 180 * pi); 
+% title('Differences between preferred directions');
+% 
+% edges_hist = linspace(0, 1, 11);
+% 
+% subplot(1, 3, 2);
+% histogram(sdi, edges_hist); 
+% title('Distribution of differences of saccade discrimination indices');
+% xlabel('SDI');
+% ylabel('Count');
+% 
+% subplot(1, 3, 3);
+% histogram(mag, edges_hist); 
+% title('Distribution of differences of normalized magnitudes');
+% xlabel('Normalized magnitude');
+% ylabel('Count');
+
+figure;
+subplot(2, 2, 1);
+s1 = scatter(dir_x * 180 / pi, dir_y * 180 / pi); 
+s1.MarkerFaceColor = [0 0.5 0.5];hold on
+% disp(dir_vm_y);
+s2 = scatter(dir_vm_x, dir_vm_y);
+s2.MarkerFaceColor = [0.75 0 0];
+plot([0, 360], [0, 360], '-k');
+xticks(linspace(0, 360, 13));
+yticks(linspace(0, 360, 13));
+xlim([0 360]);
+ylim([0 360]);
+title('Differences between preferred directions');
+
+ 
+subplot(2, 2, 2);
+scatter(sdi_x, sdi_y); hold on
+plot([0, 1], [0, 1], '-k');
+title('Distribution of differences of saccade discrimination indices');
+xlim([0 1]);
+ylim([0 1]);
+
+subplot(2, 2, 3);
+scatter(mag_x, mag_y); hold on
+plot([0, 1], [0, 1], '-k');
+title('Distribution of differences of normalized magnitudes');
+xlim([0 1]);
+ylim([0 1]);
+
+subplot(2, 2, 4);
+scatter(bw_x, bw_y); hold on
+plot([0, 18], [0, 18], '-k');
+title('Distribution of differences of von Mises bandwidths');
+xlim([0 18]);
+ylim([0 18]);
